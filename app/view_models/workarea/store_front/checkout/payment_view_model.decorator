@@ -1,0 +1,18 @@
+module Workarea
+  decorate Storefront::Checkout::PaymentViewModel, with: :usa_epay do
+    def usa_epay?
+      payment.usa_epay?
+    end
+
+    def using_new_card?
+      super && !usa_epay?
+    end
+
+    def credit_cards
+      super.map do |card|
+        card.options[:usa_epay] = usa_epay?
+        card
+      end
+    end
+  end
+end

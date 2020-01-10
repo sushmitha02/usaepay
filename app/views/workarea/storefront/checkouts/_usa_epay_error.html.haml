@@ -1,0 +1,6 @@
+- if step.usa_epay? && step.payment.usa_epay.errors.any?
+  - step.payment.usa_epay.errors.full_messages.each do |message|
+    .message.message--error
+      %p.message__type
+        %span.message__icon= t('workarea.storefront.messages.error')
+      %p.message__text= message

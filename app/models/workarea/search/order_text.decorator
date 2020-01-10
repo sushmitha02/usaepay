@@ -1,0 +1,8 @@
+module Workarea
+  decorate Search::OrderText, with: :usa_epay do
+    def payment_text
+      return 'UsaEpay' if payment.usa_epay?
+      super
+    end
+  end
+end

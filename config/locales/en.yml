@@ -1,0 +1,18 @@
+en:
+  workarea:
+    admin:
+      orders:
+        tenders:
+          usa_epay:
+            title: usaepay
+    storefront:
+      usa_epay:
+        address_error: We can not ship to this address. Please enter a new address.
+        check_out: Check Out with usaePAY
+        checkout_submit_text: Continue to usaepay
+        on_continue: When you continue, you will be taken to the usaepay website.
+        paid_with_paypal: Paid with PayPal
+        payment_recieved: Thank You! We have received your information back from usaepay.
+          Please confirm that the shipping address and shipping method are correct,
+          then click on 'Place Order'.
+        usa_epay: usaepay

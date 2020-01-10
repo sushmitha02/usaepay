@@ -1,0 +1,13 @@
+module Workarea
+  decorate Storefront::Checkout::PlaceOrderController, with: 'usa_epay' do
+    def place_order
+      if params[:payment] == 'usa_epay' && !current_checkout.payment.usa_epay? && params[:from_checkout].present?
+        redirect_to start_usa_epay_path(from_checkout: 'from_checkout') and return
+      elsif params[:payment] == 'usa_epay' && !current_checkout.payment.usa_epay?
+        redirect_to start_usa_epay_path and return
+      else
+        super
+      end
+    end
+  end
+end

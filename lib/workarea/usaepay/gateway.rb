@@ -1,0 +1,158 @@
+module Workarea
+  module UsaEpay
+    class Gateway
+      attr_reader :merchant_id, :secret_key, :options
+      class_attribute :test_rest_endpoint, :production_rest_endpoint
+
+
+      def initialize(merchant_id, secret_key, options = {})
+        @merchant_id = merchant_id
+        @secret_key = secret_key
+        @options = options
+      end
+
+      def get_configuration
+        response = connection.get do |req|
+          req.url "/v2/configuration"
+        end
+        UsaEpay::Response.new(response)
+      end
+
+      def get_order(token)
+          response = connection.get do |req|
+          req.url "/v2/checkouts/#{token}"
+        end
+
+        UsaEpay::Response.new(response)
+      end
+
+      def create_order(order)
+        response = connection.post do |req|
+          req.url "/v2/checkouts"
+          req.body = order.to_json
+        end
+        UsaEpay::Response.new(response)
+      end
+
+      def authorize(token, order_id, request_id)
+        body = {
+          token: token,
+          request_id: request_id
+        }
+        response = connection.post do |req|
+          req.url "/v2/payments/auth"
+          req.body = body.to_json
+        end
+
+        UsaEpay::Response.new(response)
+      end
+
+      def capture(payment_id, amount, request_id)
+        body = {
+          amount: {
+            amount: amount.to_f,
+            currency: amount.currency.iso_code
+          },
+          request_id: request_id
+        }
+        response = connection.post do |req|
+          req.url "/v2/payments/#{payment_id}/capture"
+          req.body = body.to_json
+        end
+
+        UsaEpay::Response.new(response)
+      end
+
+      def void(payment_id)
+        response = connection.post do |req|
+          req.url "/v2/payments/#{payment_id}/void"
+        end
+
+        UsaEpay::Response.new(response)
+      end
+
+      def purchase(token, request_id)
+        body = {
+          token: token,
+          request_id: request_id
+        }
+        response = connection.post do |req|
+          req.url "/v2/payments/capture"
+          req.body = body.to_json
+        end
+
+        UsaEpay::Response.new(response)
+      end
+
+      def refund(usaepay_order_id, amount, request_id)
+        body = {
+          requestId: request_id,
+          amount: {
+            amount: amount.to_f,
+            currency: amount.currency.iso_code
+          }
+        }
+
+        response = connection.post do |req|
+          req.url "/v2/payments/#{usaepay_order_id}/refund"
+          req.body = body.to_json
+        end
+        UsaEpay::Response.new(response)
+      end
+
+      private
+
+        def connection
+          headers = {
+            "Content-Type" => "application/json",
+            "Accept"       => "application/json",
+            "Authorization" => "Basic #{auth_string}",
+            "User-Agent" => user_agent
+          }
+
+          request_timeouts = {
+            timeout: Workarea.config.usaepay[:api_timeout],
+            open_timeout: Workarea.config.usaepay[:open_timeout]
+          }
+
+          Faraday.new(url: rest_endpoint, headers: headers, request: request_timeouts)
+        end
+
+        def auth_string
+          @auth_string = Base64.strict_encode64("#{merchant_id}:#{secret_key}")
+        end
+
+        def test?
+          (options.has_key?(:test) ? options[:test] : true)
+        end
+
+        def rest_endpoint
+          endpoint_hash = location == :us ? us_endpoints : au_endpoints
+
+          test? ? endpoint_hash[:test_rest_endpoint] : endpoint_hash[:production_rest_endpoint]
+        end
+
+        def au_endpoints
+          {
+            test_rest_endpoint: 'https://api-sandbox.usaepay.com',
+            production_rest_endpoint: 'https://api.usaepay.com'
+          }
+        end
+
+        def us_endpoints
+          {
+            test_rest_endpoint: 'https://api.us-sandbox.usaepay.com',
+            production_rest_endpoint: 'https://api.us.usaepay.com'
+          }
+        end
+
+        def location
+          options[:location]
+        end
+
+        def user_agent
+          "UsaEpay Modile/1.0.0 (WORKAREA/#{Workarea::VERSION::STRING}; Merchant/#{merchant_id}) https://#{Workarea.config.host}"
+        end
+    end
+  end
+end

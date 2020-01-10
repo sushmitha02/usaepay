@@ -1,0 +1,27 @@
+module Workarea
+  decorate Payment, with: :usa_epay do
+    decorated do
+      embeds_one :usa_epay, class_name: 'Workarea::Payment::Tender::UsaEpay'
+    end
+
+    def set_usa_epay(attrs)
+      build_usa_epay unless usa_epay
+      usaepay.attributes = attrs.slice(
+        :token,
+        :payer_id,
+        :details
+      )
+
+      save
+    end
+
+    def usa_epay?
+      usa_epay.present?
+    end
+
+    def set_credit_card(*)
+      self.usa_epay = nil
+      super
+    end
+  end
+end

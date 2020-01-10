@@ -1,0 +1,7 @@
+module Workarea
+  decorate Storefront::CreditCardViewModel, with: :usa_epay do
+    def selected?
+      super && !options[:usa_epay]
+    end
+  end
+end

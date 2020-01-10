@@ -1,0 +1,12 @@
+.checkout-payment__primary-method{ class: ('checkout-payment__primary-method--selected' if @step.usa_epay?) }
+  .button-property
+    = hidden_field_tag 'from_checkout', 'from_checkout'
+    .value= radio_button_tag 'payment', 'usa_epay', step.usa_epay?, data: { update_checkout_submit_text: { prevent: step.usa_epay?, text: t('workarea.storefront.usa_epay.checkout_submit_text') }.to_json }
+    = label_tag 'payment[usa_epay]', nil, class: 'button-property__name' do
+      %span.button-property__text= t('workarea.storefront.usa_epay.usa_epay')
+  %p.checkout-payment__primary-method-description
+    = inline_svg('workarea/admin/payment_icons/usaepay.png', class: 'payment-icon', title: 'UsaEPay')
+    - if @step.usa_epay?
+      %span= t('workarea.storefront.usa_epay.payment_recieved')
+    - else
+      %span= t('workarea.storefront.usa_epay.on_continue')
